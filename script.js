@@ -23,6 +23,8 @@ async function main() {
         if (!(e.buttons & 1))
             return;
 
+        document.body.setPointerCapture(e.pointerId);
+
         center_x -= e.movementX * scale;
         center_y += e.movementY * scale;
         requestAnimationFrame(render);

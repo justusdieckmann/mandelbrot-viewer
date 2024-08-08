@@ -3,6 +3,12 @@ struct VertexOut {
     @location(0) uv: vec2f,
 }
 
+struct PrecisionFloat {
+    exponent: i32,
+    length: u32,
+    mantissa: vec4<u32>
+}
+
 @group(0) @binding(0) var<uniform> screenRect: vec4f;
 
 @vertex fn vs(
@@ -20,6 +26,7 @@ struct VertexOut {
   var output: VertexOut;
   output.pos = vec4f(pos[vertexIndex], 0.0, 1.0);
   output.uv = output.pos.xy * 0.5 + 0.5;
+  cool();
   return output;
 }
 
@@ -45,3 +52,9 @@ fn mandelbrot(a: f32, b: f32) -> bool {
     }
     return true;
 }
+
+fn cool() -> PrecisionFloat {
+  var pf: PrecisionFloat;
+  return pf;
+}
+
