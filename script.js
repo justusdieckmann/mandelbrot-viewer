@@ -19,14 +19,40 @@ async function main() {
        requestAnimationFrame(render);
     });
 
-    document.body.addEventListener('pointermove', (e) => {
-        if (!(e.buttons & 1))
-            return;
+    const pointers = new Map();
 
+    document.body.addEventListener('pointerdown', (e) => {
+        pointers.set(e.pointerId, [e.clientX, e.clientY]);
         document.body.setPointerCapture(e.pointerId);
+    });
 
-        center_x -= e.movementX * scale;
-        center_y += e.movementY * scale;
+    document.body.addEventListener('pointerup', (e) => {
+        pointers.delete(e.pointerId);
+    });
+
+    document.body.addEventListener('pointermove', (e) => {
+        if (pointers.size === 1) {
+            if (!(e.buttons & 1))
+                return;
+
+            center_x -= e.movementX * scale * window.devicePixelRatio;
+            center_y += e.movementY * scale * window.devicePixelRatio;
+        } else if (pointers.size === 2) {
+            let otherpoint = null;
+            for (let i of pointers.keys()) {
+                if (i === e.pointerId)
+                    continue;
+
+                otherpoint = pointers.get(i);
+            }
+            const [other_x, other_y] = otherpoint;
+            const oldDist = dist(other_x - e.clientX + e.movementX, other_y - e.clientY + e.movementY) * window.devicePixelRatio;
+            const newDist = dist(other_x - e.clientX, other_y - e.clientY) * window.devicePixelRatio;
+            scale *= oldDist / newDist;
+        }
+
+        pointers.set(e.pointerId, [e.clientX, e.clientY]);
+
         requestAnimationFrame(render);
     });
 
@@ -103,6 +129,8 @@ async function main() {
         const w = canvas.width * scale;
         const h = canvas.height * scale;
 
+        console.log([center_x - w / 2, center_y - h / 2, w, h]);
+
         screenRectValues.set([center_x - w / 2, center_y - h / 2, w, h]); // set the scale
 
         // copy the values from JavaScript to the GPU
@@ -134,6 +162,10 @@ async function main() {
         render();
     });
     observer.observe(canvas);
+}
+
+function dist(dx, dy) {
+    return Math.sqrt(dx * dx + dy * dy);
 }
 
 function fail(msg) {
